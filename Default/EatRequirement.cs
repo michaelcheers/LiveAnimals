@@ -32,6 +32,15 @@ namespace Default
             }
         }
 
+        public override Eatable[] WantsAdd
+        {
+            get
+            {
+                return new[] { App.GetEatableById(value) };
+            }
+        }
+
         public int eatNumNeeded;
+        public string value;
     }
 }

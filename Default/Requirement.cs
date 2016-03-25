@@ -11,8 +11,9 @@ namespace Default
         public abstract int Denominator { get; }
         public abstract int Numerator { get; }
         public abstract string Text { get; }
+        public virtual Eatable[] WantsAdd { get { return new Eatable[] { }; } }
 
-        public Animal value;
+        public Animal animalRuntime;
         public event Action numeratorChanged;
     }
 }

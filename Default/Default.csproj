@@ -35,9 +35,12 @@
   <ItemGroup>
     <Compile Include="Animal.cs" />
     <Compile Include="App.cs" />
+    <Compile Include="EatEvent.cs" />
+    <Compile Include="Event.cs" />
     <Compile Include="EatRequirement.cs" />
     <Compile Include="EatableObject.cs" />
     <Compile Include="IRequirement.cs" />
+    <Compile Include="JsonDictionary.cs" />
     <Compile Include="Plant.cs" />
     <Compile Include="PositionedObject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

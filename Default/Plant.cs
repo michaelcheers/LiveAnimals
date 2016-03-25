@@ -9,11 +9,10 @@ namespace Default
     public class Plant : Eatable
     {
         public string name;
-        public string id;
 
-        public override void Eat(Animal eatenBy)
+        public override void GetEatenBy(Animal eatenBy)
         {
-            base.Eat(eatenBy);
+            base.GetEatenBy(eatenBy);
         }
     }
 }

@@ -10,5 +10,6 @@ namespace Default
     {
         public Vector2? gardenPosition;
         public PositionedObject[] garden;
+        public string id;
     }
 }

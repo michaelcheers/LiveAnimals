@@ -11,7 +11,7 @@ namespace Default
 {
     public abstract class Eatable : PositionedObject
     {
-        public virtual void Eat (Animal eatenBy)
+        public virtual void GetEatenBy (Animal eatenBy)
         {
             garden.ForEach((v, pos) => { if (v == this) { garden.Splice(pos, 1); return false; } return true; });
         }
