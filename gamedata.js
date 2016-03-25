@@ -8,6 +8,13 @@ var gamedata = {
           "value": "carrot"
         }
       ]
+    },
+    "worm": {
+        "name": "Worm",
+        "appear": [],
+        "visit": [],
+        "resident": [],
+
     }
   },
   "plants": {
