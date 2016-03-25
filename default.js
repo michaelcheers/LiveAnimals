@@ -18,10 +18,12 @@
     
     Bridge.define('Game', {
         statics: {
+            gardenAppear: null,
             garden: null,
             animals: null,
             config: {
                 init: function () {
+                    this.gardenAppear = [];
                     this.garden = [];
                     this.animals = [];
                     Bridge.ready(this.main);
@@ -91,9 +93,10 @@
                 while ($t.moveNext()) {
                     var item = $t.getCurrent();
                     if (Bridge.Linq.Enumerable.from(item.appear).all($_.Game.f1)) {
+                        var itemClone = Bridge.merge(item, { });
                         item.state = Default.Animal.AnimalState.appear;
+                        Bridge.get(Game).gardenAppear.push(item);
                     }
-    
                 }
                 $t1 = Bridge.getEnumerator(Bridge.get(Game).garden);
                 while ($t1.moveNext()) {
@@ -241,6 +244,10 @@
         getWantsAdd: function () {
             return [];
         }
+    });
+    
+    Bridge.define('VisitEvent', {
+        inherits: [Default.IAnimalEvent]
     });
     
     Bridge.define('Default.Animal', {

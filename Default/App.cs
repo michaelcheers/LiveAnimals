@@ -11,6 +11,7 @@ namespace Default
     [Name("Game")]
     public static class App
     {
+        public static PositionedObject[] gardenAppear = new PositionedObject[] { };
         public static PositionedObject[] garden = new PositionedObject[] { };
         public static Animal[] animals = new Animal[] { };
         [Template("gamedata")]
@@ -96,8 +97,11 @@ namespace Default
             foreach (var item in animals)
             {
                 if (item.appear.All(v => v.Numerator == v.Denominator))
+                {
+                    var itemClone = BridgeMerge(item, new object());
                     item.state = Animal.AnimalState.Appear;
-                
+                    gardenAppear.Push(item);
+                }
             }
             foreach (var item in garden)
             {
