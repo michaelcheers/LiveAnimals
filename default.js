@@ -104,7 +104,7 @@
                         $t2 = Bridge.getEnumerator(itemAnimalAs.getcurrentRequirements());
                         while ($t2.moveNext()) {
                             var item2 = $t2.getCurrent();
-                            wants.push.apply(,item2.getWantsAdd());
+                            wants = Bridge.cast(wants.concat.apply(wants, item2.getWantsAdd()), Array);
                         }
                         itemAnimalAs.events = wants.map($_.Game.f2);
                     }

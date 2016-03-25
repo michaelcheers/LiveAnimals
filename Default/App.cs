@@ -106,7 +106,7 @@ namespace Default
                     var itemAnimalAs = item as Animal;
                     var wants = new Eatable[] { };
                     foreach (var item2 in itemAnimalAs.currentRequirements)
-                        wants.Push(item2.WantsAdd);
+                        wants = (Eatable[])wants.Concat(item2.WantsAdd);
                     itemAnimalAs.events = wants.Map(v => new EatEvent(v));
                 }
             }
