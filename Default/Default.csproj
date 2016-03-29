@@ -38,7 +38,7 @@
     <Compile Include="EatEvent.cs" />
     <Compile Include="Event.cs" />
     <Compile Include="EatRequirement.cs" />
-    <Compile Include="EatableObject.cs" />
+    <Compile Include="Eatable.cs" />
     <Compile Include="IRequirement.cs" />
     <Compile Include="JsonDictionary.cs" />
     <Compile Include="Plant.cs" />

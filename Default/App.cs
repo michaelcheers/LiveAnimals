@@ -11,9 +11,13 @@ namespace Default
     [Name("Game")]
     public static class App
     {
-        public static PositionedObject[] gardenAppear = new PositionedObject[] { };
+        public static Animal[] gardenAppear = new Animal[] { };
         public static PositionedObject[] garden = new PositionedObject[] { };
         public static Animal[] animals = new Animal[] { };
+
+        [Template("new {0}()")]
+        public static extern object New(Type value);
+
         [Template("gamedata")]
         public static extern dynamic gamedata();
 
@@ -25,7 +29,11 @@ namespace Default
         {
             foreach (var item in new JsonDictionary(gamedata().animals))
             {
+                Console.Log("Loading " + item.Key + "...");
+                Console.Log(item.Value);
                 animals.Push(LoadAnimal(item.Key, item.Value));
+                Console.Log("Loaded " + item.Key + ".");
+                Console.Log(animals.Last());
             }
             Global.SetInterval(Interval, 4000);
         }
@@ -46,12 +54,13 @@ namespace Default
                         }
                     case "appear":
                     case "resident":
+                    case "visit":
                         {
-                            result[item.Key] = (item.Value as object[]).Map(LoadRequirement);
+                            result[item.Key] = (item.Value as object[]).Map(v => LoadRequirement(v, result));
                             break;
                         }
                     default:
-                        throw new ArgumentException("Unknown property: " + key);
+                        throw new ArgumentException("Unknown property: " + item.Key);
                 }
             }
             return result;
@@ -65,13 +74,13 @@ namespace Default
             throw new ArgumentException("Unknown id: " + value);
         }
 
-        private static Requirement LoadRequirement(dynamic input)
+        private static Requirement LoadRequirement(dynamic input, Animal value)
         {
             switch ((string)input.type)
             {
                 case "EatRequirement":
                     {
-                        return BridgeMerge(new EatRequirement(), input);
+                        return BridgeMerge(new EatRequirement(), BridgeMerge(input, new { animalRuntime = value}));
                     }
                 default:
                     throw new ArgumentException("Requirement type: " + input.type);
@@ -79,7 +88,7 @@ namespace Default
         }
 
         [Template("Bridge.merge({0}, {1})")]
-        private static extern T BridgeMerge<T>(T from, dynamic to);
+        public static extern T BridgeMerge<T>(T from, dynamic to);
 
         public static string HttpGet(string value)
         {
@@ -94,13 +103,14 @@ namespace Default
 
         private static void Interval()
         {
-            foreach (var item in animals)
+            foreach (var item in (Animal[])animals.Concat(gardenAppear))
             {
-                if (item.appear.All(v => v.Numerator == v.Denominator))
+                if (item.currentRequirements.All(v => v.Numerator == v.Denominator))
                 {
-                    var itemClone = BridgeMerge(item, new object());
-                    item.state = Animal.AnimalState.Appear;
-                    gardenAppear.Push(item);
+                    Console.Log("All " + item.state + " requirements of the " + item.name + " have been met.");
+                    var itemClone = item.state == Animal.AnimalState.None ? item.Clone() : item;
+                    item.state++;
+                    gardenAppear.Push(itemClone);
                 }
             }
             foreach (var item in garden)

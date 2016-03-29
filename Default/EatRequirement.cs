@@ -20,7 +20,7 @@ namespace Default
         {
             get
             {
-                throw new NotImplementedException();
+                return animalRuntime.eaten.Count(v => v.id == value);
             }
         }
 
@@ -28,7 +28,7 @@ namespace Default
         {
             get
             {
-                throw new NotImplementedException();
+                return animalRuntime.name + " eats " + App.GetEatableById(value).name;
             }
         }
 

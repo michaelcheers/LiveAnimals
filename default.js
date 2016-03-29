@@ -2,16 +2,32 @@
     "use strict";
 
     Bridge.define('Default.PositionedObject', {
+        inherits: [Bridge.ICloneable],
         gardenPosition: null,
         garden: null,
-        id: null
+        id: null,
+        name: null,
+        clone: function () {
+            return Bridge.merge(new Bridge.getType(this)(), Object.keys(this).map(Bridge.fn.bind(this, $_.Default.PositionedObject.f1)));
+        }
     });
     
-    Bridge.define('Default.Animal.AnimalState', {
+    var $_ = {};
+    
+    Bridge.ns("Default.PositionedObject", $_)
+    
+    Bridge.apply($_.Default.PositionedObject, {
+        f1: function (v) {
+            return new Bridge.KeyValuePair$2(String,Object)(v, this[v]);
+        }
+    });
+    
+    Bridge.define('Animal.AnimalState', {
         statics: {
-            appear: 0,
-            visiting: 1,
-            resident: 2
+            none: 0,
+            appear: 1,
+            visiting: 2,
+            resident: 3
         },
         $enum: true
     });
@@ -34,33 +50,42 @@
                 $t = Bridge.getEnumerator(Bridge.merge(new JsonDictionary(), gamedata.animals));
                 while ($t.moveNext()) {
                     var item = $t.getCurrent();
+                    console.log("Loading " + item.key + "...");
+                    console.log(item.value);
                     Bridge.get(Game).animals.push(Bridge.get(Game).loadAnimal(item.key, item.value));
+                    console.log("Loaded " + item.key + ".");
+                    console.log(Bridge.Linq.Enumerable.from(Bridge.get(Game).animals).last());
                 }
                 Bridge.global.setInterval(Bridge.get(Game).interval, 4000);
             },
             loadAnimal: function (key, valueInput) {
                 var $t;
-                var result = new Default.Animal();
+                var result = new Animal();
                 var value = Bridge.merge(new JsonDictionary(), valueInput);
                 result.id = key;
                 $t = Bridge.getEnumerator(value);
                 while ($t.moveNext()) {
-                    var item = $t.getCurrent();
-                    switch (item.key) {
-                        case "name": 
-                            {
-                                result[item.key] = item.value;
-                                break;
-                            }
-                        case "appear": 
-                        case "resident": 
-                            {
-                                result[item.key] = (Bridge.as(item.value, Array)).map(Bridge.get(Game).loadRequirement);
-                                break;
-                            }
-                        default: 
-                            throw new Bridge.ArgumentException("Unknown property: " + key);
-                    }
+                    (function () {
+                        var item = $t.getCurrent();
+                        switch (item.key) {
+                            case "name": 
+                                {
+                                    result[item.key] = item.value;
+                                    break;
+                                }
+                            case "appear": 
+                            case "resident": 
+                            case "visit": 
+                                {
+                                    result[item.key] = (Bridge.as(item.value, Array)).map(function (v) {
+                                        return Bridge.get(Game).loadRequirement(v, result);
+                                    });
+                                    break;
+                                }
+                            default: 
+                                throw new Bridge.ArgumentException("Unknown property: " + item.key);
+                        }
+                    }).call(this);
                 }
                 return result;
             },
@@ -71,11 +96,11 @@
                 }
                 throw new Bridge.ArgumentException("Unknown id: " + value);
             },
-            loadRequirement: function (input) {
+            loadRequirement: function (input, value) {
                 switch (Bridge.cast(input.type, String)) {
                     case "EatRequirement": 
                         {
-                            return Bridge.merge(new Default.EatRequirement(), input);
+                            return Bridge.merge(new Default.EatRequirement(), Bridge.merge(input, { animalRuntime: value }));
                         }
                     default: 
                         throw new Bridge.ArgumentException("Requirement type: " + input.type);
@@ -89,20 +114,21 @@
             },
             interval: function () {
                 var $t, $t1, $t2;
-                $t = Bridge.getEnumerator(Bridge.get(Game).animals);
+                $t = Bridge.getEnumerator(Bridge.cast(Bridge.get(Game).animals.concat.apply(Bridge.get(Game).animals, Bridge.get(Game).gardenAppear), Array));
                 while ($t.moveNext()) {
                     var item = $t.getCurrent();
-                    if (Bridge.Linq.Enumerable.from(item.appear).all($_.Game.f1)) {
-                        var itemClone = Bridge.merge(item, { });
-                        item.state = Default.Animal.AnimalState.appear;
-                        Bridge.get(Game).gardenAppear.push(item);
+                    if (Bridge.Linq.Enumerable.from(item.getcurrentRequirements()).all($_.Game.f1)) {
+                        console.log("All " + item.state + " requirements of the " + item.name + " have been met.");
+                        var itemClone = item.state === Animal.AnimalState.none ? item.clone() : item;
+                        item.state++;
+                        Bridge.get(Game).gardenAppear.push(itemClone);
                     }
                 }
                 $t1 = Bridge.getEnumerator(Bridge.get(Game).garden);
                 while ($t1.moveNext()) {
                     var item1 = $t1.getCurrent();
-                    if (Bridge.is(item1, Default.Animal)) {
-                        var itemAnimalAs = Bridge.as(item1, Default.Animal);
+                    if (Bridge.is(item1, Animal)) {
+                        var itemAnimalAs = Bridge.as(item1, Animal);
                         var wants = [];
                         $t2 = Bridge.getEnumerator(itemAnimalAs.getcurrentRequirements());
                         while ($t2.moveNext()) {
@@ -115,8 +141,6 @@
             }
         }
     });
-    
-    var $_ = {};
     
     Bridge.ns("Game", $_)
     
@@ -250,26 +274,30 @@
         inherits: [Default.IAnimalEvent]
     });
     
-    Bridge.define('Default.Animal', {
+    Bridge.define('Animal', {
         inherits: [Default.Eatable],
-        name: null,
         appear: null,
         visit: null,
         resident: null,
+        romance: null,
         state: 0,
+        eaten: null,
         events: null,
         config: {
             init: function () {
+                this.eaten = [];
                 this.events = [];
             }
         },
         getcurrentRequirements: function () {
             switch (this.state) {
-                case Default.Animal.AnimalState.appear: 
+                case Animal.AnimalState.none: 
+                    return this.appear;
+                case Animal.AnimalState.appear: 
                     return this.visit;
-                case Default.Animal.AnimalState.visiting: 
+                case Animal.AnimalState.visiting: 
                     return this.resident;
-                case Default.Animal.AnimalState.resident: 
+                case Animal.AnimalState.resident: 
                 default: 
                     throw new Bridge.NotImplementedException();
             }
@@ -279,6 +307,7 @@
             pointer = value;
         },
         eat: function (value) {
+            this.eaten.push(value);
             value.getEatenBy(this);
         }
     });
@@ -291,19 +320,26 @@
             return this.eatNumNeeded;
         },
         getNumerator: function () {
-            throw new Bridge.NotImplementedException();
+            return Bridge.Linq.Enumerable.from(this.animalRuntime.eaten).count(Bridge.fn.bind(this, $_.Default.EatRequirement.f1));
         },
         getText: function () {
-            throw new Bridge.NotImplementedException();
+            return this.animalRuntime.name + " eats " + Bridge.get(Game).getEatableById(this.value).name;
         },
         getWantsAdd: function () {
             return [Bridge.get(Game).getEatableById(this.value)];
         }
     });
     
+    Bridge.ns("Default.EatRequirement", $_)
+    
+    Bridge.apply($_.Default.EatRequirement, {
+        f1: function (v) {
+            return v.id === this.value;
+        }
+    });
+    
     Bridge.define('Default.Plant', {
         inherits: [Default.Eatable],
-        name: null,
         getEatenBy: function (eatenBy) {
             Default.Eatable.prototype.getEatenBy.call(this, eatenBy);
         }

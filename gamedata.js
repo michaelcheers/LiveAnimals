@@ -13,8 +13,7 @@ var gamedata = {
         "name": "Worm",
         "appear": [],
         "visit": [],
-        "resident": [],
-
+        "resident": []
     }
   },
   "plants": {
