@@ -59,5 +59,8 @@ namespace JSONDictionary
 
         [Template(getEnumerator)]
         extern IEnumerator IEnumerable.GetEnumerator();
+
+        [Name("export")]
+        public extern dynamic ExportToJSON();
     }
 }

@@ -8,7 +8,7 @@
         id: null,
         name: null,
         clone: function () {
-            return Bridge.merge(new Bridge.getType(this)(), Object.keys(this).map(Bridge.fn.bind(this, $_.Default.PositionedObject.f1)));
+            return Bridge.merge(new Bridge.getType(this)(), Bridge.merge(new JsonDictionary(), Object.keys(this).map(Bridge.fn.bind(this, $_.Default.PositionedObject.f1))).export());
         }
     });
     
@@ -18,7 +18,7 @@
     
     Bridge.apply($_.Default.PositionedObject, {
         f1: function (v) {
-            return new Bridge.KeyValuePair$2(String,Object)(v, this[v]);
+            return [v, this[v]];
         }
     });
     
@@ -97,13 +97,15 @@
                 throw new Bridge.ArgumentException("Unknown id: " + value);
             },
             loadRequirement: function (input, value) {
-                switch (Bridge.cast(input.type, String)) {
+                var type = Bridge.cast(input.type, String);
+                delete input.type;
+                switch (type) {
                     case "EatRequirement": 
                         {
                             return Bridge.merge(new Default.EatRequirement(), Bridge.merge(input, { animalRuntime: value }));
                         }
                     default: 
-                        throw new Bridge.ArgumentException("Requirement type: " + input.type);
+                        throw new Bridge.ArgumentException("Requirement type: " + type);
                 }
             },
             httpGet: function (value) {
@@ -112,30 +114,63 @@
                 xmlHttp.send(null);
                 return xmlHttp.responseText;
             },
+            baseAreEqual: function (a, b) {
+                return a.id === b.id;
+            },
+            animalInterval: function (location, item) {
+                var arrayToAddTo;
+                switch (item.state) {
+                    case Animal.AnimalState.none: 
+                        {
+                            if (Bridge.Linq.Enumerable.from(Bridge.get(Game).gardenAppear).count(function (v) {
+                                return v.id === item.id;
+                            }) >= 1 || Bridge.Linq.Enumerable.from(Bridge.get(Game).garden).count(function (v) {
+                                return v.id === item.id;
+                            }) >= 2) {
+                                return;
+                            }
+                            arrayToAddTo = Bridge.get(Game).gardenAppear;
+                            break;
+                        }
+                    case Animal.AnimalState.visiting: 
+                        {
+                            arrayToAddTo = Bridge.get(Game).garden;
+                            break;
+                        }
+                    case Animal.AnimalState.appear: 
+                        {
+                            break;
+                        }
+                    case Animal.AnimalState.resident: 
+                        {
+                            return;
+                        }
+                    default: 
+                        throw new Bridge.NotImplementedException();
+                }
+                if (Bridge.Linq.Enumerable.from(item.getcurrentRequirements()).all($_.Game.f1)) {
+                    var itemClone = item.state === Animal.AnimalState.none ? Bridge.cast(item.clone(), Animal) : item;
+                    console.log("All " + Bridge.Enum.getName(Animal.AnimalState, ++itemClone.state) + " requirements of the " + item.name + " have been met.");
+                    Bridge.get(Game).gardenAppear.push(itemClone);
+                }
+            },
             interval: function () {
-                var $t, $t1, $t2;
-                $t = Bridge.getEnumerator(Bridge.cast(Bridge.get(Game).animals.concat.apply(Bridge.get(Game).animals, Bridge.get(Game).gardenAppear), Array));
+                var $t, $t1;
+                Bridge.Linq.Enumerable.from(Bridge.get(Game).animals).forEach($_.Game.f2);
+                Bridge.Linq.Enumerable.from(Bridge.get(Game).gardenAppear).forEach($_.Game.f3);
+                Bridge.Linq.Enumerable.from(Bridge.get(Game).garden).forEach($_.Game.f4);
+                $t = Bridge.getEnumerator(Bridge.get(Game).garden);
                 while ($t.moveNext()) {
                     var item = $t.getCurrent();
-                    if (Bridge.Linq.Enumerable.from(item.getcurrentRequirements()).all($_.Game.f1)) {
-                        console.log("All " + item.state + " requirements of the " + item.name + " have been met.");
-                        var itemClone = item.state === Animal.AnimalState.none ? item.clone() : item;
-                        item.state++;
-                        Bridge.get(Game).gardenAppear.push(itemClone);
-                    }
-                }
-                $t1 = Bridge.getEnumerator(Bridge.get(Game).garden);
-                while ($t1.moveNext()) {
-                    var item1 = $t1.getCurrent();
-                    if (Bridge.is(item1, Animal)) {
-                        var itemAnimalAs = Bridge.as(item1, Animal);
+                    if (Bridge.is(item, Animal)) {
+                        var itemAnimalAs = Bridge.as(item, Animal);
                         var wants = [];
-                        $t2 = Bridge.getEnumerator(itemAnimalAs.getcurrentRequirements());
-                        while ($t2.moveNext()) {
-                            var item2 = $t2.getCurrent();
+                        $t1 = Bridge.getEnumerator(itemAnimalAs.getcurrentRequirements());
+                        while ($t1.moveNext()) {
+                            var item2 = $t1.getCurrent();
                             wants = Bridge.cast(wants.concat.apply(wants, item2.getWantsAdd()), Array);
                         }
-                        itemAnimalAs.events = wants.map($_.Game.f2);
+                        itemAnimalAs.events = wants.map($_.Game.f5);
                     }
                 }
             }
@@ -149,8 +184,28 @@
             return v.getNumerator() === v.getDenominator();
         },
         f2: function (v) {
+            Bridge.get(Game).animalInterval(App.PositionableObjectLocation.wild, v);
+        },
+        f3: function (v) {
+            Bridge.get(Game).animalInterval(App.PositionableObjectLocation.appear, v);
+        },
+        f4: function (v) {
+            Bridge.is(v, Animal)?function () {
+                Bridge.get(Game).animalInterval(App.PositionableObjectLocation.garden, Bridge.cast(v, Animal));
+            }():undefined;
+        },
+        f5: function (v) {
             return new EatEvent(v);
         }
+    });
+    
+    Bridge.define('App.PositionableObjectLocation', {
+        statics: {
+            wild: 0,
+            appear: 1,
+            garden: 2
+        },
+        $enum: true
     });
     
     Bridge.define('Default.IAnimalEvent');
@@ -298,6 +353,7 @@
                 case Animal.AnimalState.visiting: 
                     return this.resident;
                 case Animal.AnimalState.resident: 
+                    return [];
                 default: 
                     throw new Bridge.NotImplementedException();
             }

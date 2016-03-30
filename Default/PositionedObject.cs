@@ -1,4 +1,5 @@
-﻿using System;
+﻿using JSONDictionary;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,7 +16,7 @@ namespace Default
 
         public object Clone()
         {
-            return App.BridgeMerge(App.New(GetType()), Keys(this).Map(v => new KeyValuePair<string, object>(v, this[v])));
+            return App.BridgeMerge(App.New(GetType()), new JsonDictionary(Keys(this).Map(v => new object[] { v, this[v] })).ExportToJSON());
         }
     }
 }

@@ -76,14 +76,16 @@ namespace Default
 
         private static Requirement LoadRequirement(dynamic input, Animal value)
         {
-            switch ((string)input.type)
+            var type = (string)input.type;
+            Script.Delete(input.type);
+            switch (type)
             {
                 case "EatRequirement":
                     {
-                        return BridgeMerge(new EatRequirement(), BridgeMerge(input, new { animalRuntime = value}));
+                        return BridgeMerge(new EatRequirement(), BridgeMerge(input, new { animalRuntime = value }));
                     }
                 default:
-                    throw new ArgumentException("Requirement type: " + input.type);
+                    throw new ArgumentException("Requirement type: " + type);
             }
         }
 
@@ -101,18 +103,64 @@ namespace Default
         [Template("{0}[Math.floor(Math.random() * {0}.length)]")]
         public static extern T RandomElement<T>(this T[] value);
 
+        public static bool BaseAreEqual(PositionedObject a, PositionedObject b)
+        {
+            return a.id == b.id;
+        }
+
+        [Template("{0}?{1}():undefined")]
+        public static extern void If(bool value, Action action);
+
+        [Template("{0}?{1}():undefined")]
+        public static extern T If<T>(bool value, Func<T> action);
+
+        [Template("{0}?{1}():{2}()")]
+        public static extern void If(bool value, Action action, Action @else);
+
+        [Template("{0}?{1}():{2}()")]
+        public static extern T If<T>(bool value, Func<T> action, Func<T> @else);
+
+        public static void AnimalInterval(PositionableObjectLocation location, Animal item)
+        {
+            Array arrayToAddTo;
+            switch (item.state)
+            {
+                case Animal.AnimalState.None:
+                    {
+                        if (gardenAppear.Count(v => v.id == item.id) >= 1 || garden.Count(v => v.id == item.id) >= 2)
+                            return;
+                        arrayToAddTo = gardenAppear;
+                        break;
+                    }
+                case Animal.AnimalState.Visiting:
+                    {
+                        arrayToAddTo = garden;
+                        break;
+                    }
+                case Animal.AnimalState.Appear:
+                    {
+                        break;
+                    }
+                case Animal.AnimalState.Resident:
+                    {
+                        return;
+                    }
+                default:
+                    throw new NotImplementedException();
+            }
+            if (item.currentRequirements.All(v => v.Numerator == v.Denominator))
+            {
+                var itemClone = item.state == Animal.AnimalState.None ? (Animal)item.Clone() : item;
+                Console.Log("All " + Enum.GetName(typeof(Animal.AnimalState), ++itemClone.state) + " requirements of the " + item.name + " have been met.");
+                gardenAppear.Push(itemClone);
+            }
+        }
+
         private static void Interval()
         {
-            foreach (var item in (Animal[])animals.Concat(gardenAppear))
-            {
-                if (item.currentRequirements.All(v => v.Numerator == v.Denominator))
-                {
-                    Console.Log("All " + item.state + " requirements of the " + item.name + " have been met.");
-                    var itemClone = item.state == Animal.AnimalState.None ? item.Clone() : item;
-                    item.state++;
-                    gardenAppear.Push(itemClone);
-                }
-            }
+            animals.ForEach(v => AnimalInterval(PositionableObjectLocation.Wild, v));
+            gardenAppear.ForEach(v => AnimalInterval(PositionableObjectLocation.Appear, v));
+            garden.ForEach(v => If(v is Animal, () => AnimalInterval(PositionableObjectLocation.Garden, (Animal)v)));
             foreach (var item in garden)
             {
                 if (item is Animal)
@@ -124,6 +172,13 @@ namespace Default
                     itemAnimalAs.events = wants.Map(v => new EatEvent(v));
                 }
             }
+        }
+
+        public enum PositionableObjectLocation
+        {
+            Wild,
+            Appear,
+            Garden
         }
     }
 }

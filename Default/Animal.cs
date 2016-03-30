@@ -31,6 +31,7 @@ namespace Default
                     case AnimalState.Visiting:
                         return resident;
                     case AnimalState.Resident:
+                        return new Requirement[] { };
                     default:
                         throw new NotImplementedException();
                 }
