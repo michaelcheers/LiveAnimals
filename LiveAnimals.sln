@@ -7,12 +7,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		default.js = default.js
 		gamedata.js = gamedata.js
+		graphics.js = graphics.js
 		index.html = index.html
 		..\JSONDictionary\JSONDictionary\Bridge\www\JSONDictionary.js = ..\JSONDictionary\JSONDictionary\Bridge\www\JSONDictionary.js
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "img", "img", "{B74CD5C8-2D66-4F55-BEE8-FE51D373CC00}"
 	ProjectSection(SolutionItems) = preProject
+		img\grass.png = img\grass.png
 		..\..\..\..\..\Documents\Scanned Documents\rabbit.png = ..\..\..\..\..\Documents\Scanned Documents\rabbit.png
 		..\..\..\..\..\Documents\Scanned Documents\worm.png = ..\..\..\..\..\Documents\Scanned Documents\worm.png
 	EndProjectSection

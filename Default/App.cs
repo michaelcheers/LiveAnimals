@@ -35,6 +35,7 @@ namespace Default
                 Console.Log("Loaded " + item.Key + ".");
                 Console.Log(animals.Last());
             }
+            Global.ToDynamic().initGraphics();
             Global.SetInterval(Interval, 4000);
         }
 

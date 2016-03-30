@@ -56,6 +56,7 @@
                     console.log("Loaded " + item.key + ".");
                     console.log(Bridge.Linq.Enumerable.from(Bridge.get(Game).animals).last());
                 }
+                Bridge.global.initGraphics();
                 Bridge.global.setInterval(Bridge.get(Game).interval, 4000);
             },
             loadAnimal: function (key, valueInput) {
