@@ -13,7 +13,7 @@ namespace Default
         public PositionedObject[] garden;
         public string id;
         public string name;
-
+        
         public object Clone()
         {
             return App.BridgeMerge(App.New(GetType()), new JsonDictionary(Keys(this).Map(v => new object[] { v, this[v] })).ExportToJSON());

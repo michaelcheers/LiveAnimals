@@ -122,7 +122,7 @@ namespace Default
 
         public static void AnimalInterval(PositionableObjectLocation location, Animal item)
         {
-            Array arrayToAddTo;
+            object[] arrayToAddTo;
             switch (item.state)
             {
                 case Animal.AnimalState.None:
@@ -132,13 +132,10 @@ namespace Default
                         arrayToAddTo = gardenAppear;
                         break;
                     }
+                case Animal.AnimalState.Appear:
                 case Animal.AnimalState.Visiting:
                     {
                         arrayToAddTo = garden;
-                        break;
-                    }
-                case Animal.AnimalState.Appear:
-                    {
                         break;
                     }
                 case Animal.AnimalState.Resident:
@@ -152,7 +149,7 @@ namespace Default
             {
                 var itemClone = item.state == Animal.AnimalState.None ? (Animal)item.Clone() : item;
                 Console.Log("All " + Enum.GetName(typeof(Animal.AnimalState), ++itemClone.state) + " requirements of the " + item.name + " have been met.");
-                gardenAppear.Push(itemClone);
+                arrayToAddTo.Push(itemClone);
             }
         }
 

@@ -40,7 +40,7 @@ namespace Default
             }
         }
 
-        public int eatNumNeeded;
+        public int eatNumNeeded = 1;
         public string value;
     }
 }

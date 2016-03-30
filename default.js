@@ -132,13 +132,10 @@
                             arrayToAddTo = Bridge.get(Game).gardenAppear;
                             break;
                         }
+                    case Animal.AnimalState.appear: 
                     case Animal.AnimalState.visiting: 
                         {
                             arrayToAddTo = Bridge.get(Game).garden;
-                            break;
-                        }
-                    case Animal.AnimalState.appear: 
-                        {
                             break;
                         }
                     case Animal.AnimalState.resident: 
@@ -151,7 +148,7 @@
                 if (Bridge.Linq.Enumerable.from(item.getcurrentRequirements()).all($_.Game.f1)) {
                     var itemClone = item.state === Animal.AnimalState.none ? Bridge.cast(item.clone(), Animal) : item;
                     console.log("All " + Bridge.Enum.getName(Animal.AnimalState, ++itemClone.state) + " requirements of the " + item.name + " have been met.");
-                    Bridge.get(Game).gardenAppear.push(itemClone);
+                    arrayToAddTo.push(itemClone);
                 }
             },
             interval: function () {
@@ -370,7 +367,7 @@
     
     Bridge.define('Default.EatRequirement', {
         inherits: [Default.Requirement],
-        eatNumNeeded: 0,
+        eatNumNeeded: 1,
         value: null,
         getDenominator: function () {
             return this.eatNumNeeded;
