@@ -1,14 +1,39 @@
+var GFX =
+{
+};
+
+function loadGraphics()
+{
+    var graphicsList = ["grass", "rabbit", "worm"];
+
+    graphicsList.forEach(function (name)
+    {
+        var img = new Image();
+        img.src = "img/" + name + ".png";
+        GFX[name] = img;
+    });
+}
+loadGraphics();
+
+    img1.src = 'img/grass.png';
 function initGraphics()
+{
+    //    ctx.drawImage(img, 0, 0);
+    setInterval(redrawGraphics, 1000);
+}
+
+function redrawGraphics()
 {
     var canvas = document.getElementById("gameCanvas");
     var ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#00FF00";
+    ctx.fillRect(0, 0, 1000, 1000);
+    ctx.drawImage(GFX["grass"], 0, 0);
+    drawAnimal(ctx, GFX["rabbit"], 100, 150);
+    drawAnimal(ctx, GFX["worm"], 250, 150);
+}
 
-    var img1 = new Image();
-
-    img1.onload = function ()
-    {
-        ctx.drawImage(img1, 0, 0);
-    };
-
-    img1.src = 'img/grass.png';
+function drawAnimal(ctx, image, x, y)
+{
+    ctx.drawImage(image, x-image.width*0.5, y-image.height);
 }
