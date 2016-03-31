@@ -27,6 +27,7 @@ namespace Default
         [Ready]
         public static void Main()
         {
+            random = new Random();
             foreach (var item in new JsonDictionary(gamedata().animals))
             {
                 Console.Log("Loading " + item.Key + "...");
@@ -35,8 +36,35 @@ namespace Default
                 Console.Log("Loaded " + item.Key + ".");
                 Console.Log(animals.Last());
             }
+            foreach (var item in new JsonDictionary(gamedata().plants))
+            {
+                Console.Log("Loading " + item.Key + "...");
+                Console.Log(item.Value);
+                plants.Push(LoadPlant(item.Key, item.Value));
+            }
             Global.ToDynamic().initGraphics();
             Global.SetInterval(Interval, 4000);
+        }
+
+        private static Plant LoadPlant(string key, dynamic valueInput)
+        {
+            var result = new Plant();
+            var value = new JsonDictionary(valueInput);
+            result.id = key;
+            foreach (var item in value)
+            {
+                switch (item.Key)
+                {
+                    case "name":
+                        {
+                            result.name = item.Value as string;
+                            break;
+                        }
+                    default:
+                        throw new ArgumentException("Unknown property: " + item.Key);
+                }
+            }
+            return result;
         }
 
         private static Animal LoadAnimal(string key, dynamic valueInput)
@@ -69,9 +97,12 @@ namespace Default
 
         public static Eatable GetEatableById(string value)
         {
-            var index1 = animals.IndexOf(value);
-            if (index1 != -1)
-                return animals[index1];
+            foreach (var item in new Eatable[][] { animals, plants })
+            {
+                var index = item.IndexOf(v => value == v.id);
+                if (index != -1)
+                    return item[index];
+            }
             throw new ArgumentException("Unknown id: " + value);
         }
 
@@ -152,6 +183,30 @@ namespace Default
                 Console.Log("All " + Enum.GetName(typeof(Animal.AnimalState), ++itemClone.state) + " requirements of the " + item.name + " have been met.");
                 arrayToAddTo.Push(itemClone);
             }
+            var wants = new Eatable[] { };
+            foreach (var item2 in item.currentRequirements)
+                wants = wants.Concat(item2.WantsAdd).As<Eatable[]>();
+            foreach (var wantProb in wants)
+            {
+                if (Random(new Fraction(1, 3)))
+                {
+                    Eatable eatable = null;
+                    garden.ForEach(v => If(BaseAreEqual(v, wantProb), () => eatable = (Eatable)v));
+                    if (eatable != null)
+                    {
+                        item.Eat(eatable);
+                        break;
+                    }
+                }
+            }
+        }
+
+        static Random random;
+        private static Plant[] plants = new Plant[] { };
+
+        private static bool Random(Fraction fraction)
+        {
+            return random.Bool(fraction.numerator, fraction.denominator);
         }
 
         private static void Interval()
@@ -159,17 +214,6 @@ namespace Default
             animals.ForEach(v => AnimalInterval(PositionableObjectLocation.Wild, v));
             gardenAppear.ForEach(v => AnimalInterval(PositionableObjectLocation.Appear, v));
             garden.ForEach(v => If(v is Animal, () => AnimalInterval(PositionableObjectLocation.Garden, (Animal)v)));
-            foreach (var item in garden)
-            {
-                if (item is Animal)
-                {
-                    var itemAnimalAs = item as Animal;
-                    var wants = new Eatable[] { };
-                    foreach (var item2 in itemAnimalAs.currentRequirements)
-                        wants = (Eatable[])wants.Concat(item2.WantsAdd);
-                    itemAnimalAs.events = wants.Map(v => new EatEvent(v));
-                }
-            }
         }
 
         public enum PositionableObjectLocation

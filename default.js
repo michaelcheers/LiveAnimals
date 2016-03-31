@@ -37,16 +37,20 @@
             gardenAppear: null,
             garden: null,
             animals: null,
+            random: null,
+            plants: null,
             config: {
                 init: function () {
                     this.gardenAppear = [];
                     this.garden = [];
                     this.animals = [];
+                    this.plants = [];
                     Bridge.ready(this.main);
                 }
             },
             main: function () {
-                var $t;
+                var $t, $t1;
+                Bridge.get(Game).random = new Random();
                 $t = Bridge.getEnumerator(Bridge.merge(new JsonDictionary(), gamedata.animals));
                 while ($t.moveNext()) {
                     var item = $t.getCurrent();
@@ -56,8 +60,35 @@
                     console.log("Loaded " + item.key + ".");
                     console.log(Bridge.Linq.Enumerable.from(Bridge.get(Game).animals).last());
                 }
+                $t1 = Bridge.getEnumerator(Bridge.merge(new JsonDictionary(), gamedata.plants));
+                while ($t1.moveNext()) {
+                    var item1 = $t1.getCurrent();
+                    console.log("Loading " + item1.key + "...");
+                    console.log(item1.value);
+                    Bridge.get(Game).plants.push(Bridge.get(Game).loadPlant(item1.key, item1.value));
+                }
                 Bridge.global.initGraphics();
                 Bridge.global.setInterval(Bridge.get(Game).interval, 4000);
+            },
+            loadPlant: function (key, valueInput) {
+                var $t;
+                var result = new Default.Plant();
+                var value = Bridge.merge(new JsonDictionary(), valueInput);
+                result.id = key;
+                $t = Bridge.getEnumerator(value);
+                while ($t.moveNext()) {
+                    var item = $t.getCurrent();
+                    switch (item.key) {
+                        case "name": 
+                            {
+                                result.name = Bridge.as(item.value, String);
+                                break;
+                            }
+                        default: 
+                            throw new Bridge.ArgumentException("Unknown property: " + item.key);
+                    }
+                }
+                return result;
             },
             loadAnimal: function (key, valueInput) {
                 var $t;
@@ -91,9 +122,19 @@
                 return result;
             },
             getEatableById: function (value) {
-                var index1 = Bridge.get(Game).animals.indexOf(value);
-                if (index1 !== -1) {
-                    return Bridge.get(Game).animals[index1];
+                var $t, $t1;
+                $t = Bridge.getEnumerator([Bridge.get(Game).animals, Bridge.get(Game).plants]);
+                while ($t.moveNext()) {
+                    var $t1 = (function () {
+                        var item = $t.getCurrent();
+                        var index = Bridge.Linq.Enumerable.from(item).indexOf(function (v) {
+                            return value === v.id;
+                        });
+                        if (index !== -1) {
+                            return {jump: 3, v: item[index]};
+                        }
+                    }).call(this) || {};
+                    if($t1.jump == 3) return $t1.v;
                 }
                 throw new Bridge.ArgumentException("Unknown id: " + value);
             },
@@ -119,6 +160,7 @@
                 return a.id === b.id;
             },
             animalInterval: function (location, item) {
+                var $t, $t1, $t2;
                 var arrayToAddTo;
                 switch (item.state) {
                     case Animal.AnimalState.none: 
@@ -151,26 +193,40 @@
                     console.log("All " + Bridge.Enum.getName(Animal.AnimalState, ++itemClone.state) + " requirements of the " + item.name + " have been met.");
                     arrayToAddTo.push(itemClone);
                 }
+                var wants = [];
+                $t = Bridge.getEnumerator(item.getcurrentRequirements());
+                while ($t.moveNext()) {
+                    var item2 = $t.getCurrent();
+                    wants = wants.concat.apply(wants, item2.getWantsAdd());
+                }
+                $t1 = Bridge.getEnumerator(wants);
+                while ($t1.moveNext()) {
+                    var $t2 = (function () {
+                        var wantProb = $t1.getCurrent();
+                        if (Bridge.get(Game).random$1(new Fraction(1, 3))) {
+                            var eatable = null;
+                            Bridge.Linq.Enumerable.from(Bridge.get(Game).garden).forEach(function (v) {
+                                Bridge.get(Game).baseAreEqual(v, wantProb)?function () {
+                                    var $t3;
+                                    return ($t3 = Bridge.cast(v, Default.Eatable), eatable = $t3, $t3);
+                                }():undefined;
+                            });
+                            if (Bridge.hasValue(eatable)) {
+                                item.eat(eatable);
+                                return {jump:2};
+                            }
+                        }
+                    }).call(this) || {};
+                    if($t2.jump == 2) break;
+                }
+            },
+            random$1: function (fraction) {
+                return Bridge.get(Game).random.bool(fraction.numerator, fraction.denominator);
             },
             interval: function () {
-                var $t, $t1;
                 Bridge.Linq.Enumerable.from(Bridge.get(Game).animals).forEach($_.Game.f2);
                 Bridge.Linq.Enumerable.from(Bridge.get(Game).gardenAppear).forEach($_.Game.f3);
                 Bridge.Linq.Enumerable.from(Bridge.get(Game).garden).forEach($_.Game.f4);
-                $t = Bridge.getEnumerator(Bridge.get(Game).garden);
-                while ($t.moveNext()) {
-                    var item = $t.getCurrent();
-                    if (Bridge.is(item, Animal)) {
-                        var itemAnimalAs = Bridge.as(item, Animal);
-                        var wants = [];
-                        $t1 = Bridge.getEnumerator(itemAnimalAs.getcurrentRequirements());
-                        while ($t1.moveNext()) {
-                            var item2 = $t1.getCurrent();
-                            wants = Bridge.cast(wants.concat.apply(wants, item2.getWantsAdd()), Array);
-                        }
-                        itemAnimalAs.events = wants.map($_.Game.f5);
-                    }
-                }
             }
         }
     });
@@ -191,9 +247,6 @@
             Bridge.is(v, Animal)?function () {
                 Bridge.get(Game).animalInterval(App.PositionableObjectLocation.garden, Bridge.cast(v, Animal));
             }():undefined;
-        },
-        f5: function (v) {
-            return new EatEvent(v);
         }
     });
     
@@ -209,6 +262,15 @@
     Bridge.define('Default.IAnimalEvent');
     
     Bridge.define('Default.IRequirement');
+    
+    Bridge.define('Fraction', {
+        numerator: 0,
+        denominator: 0,
+        constructor: function (numerator, denominator) {
+            this.numerator = numerator;
+            this.denominator = denominator;
+        }
+    });
     
     Bridge.define('Default.Vector2', {
         statics: {
@@ -361,6 +423,7 @@
             pointer = value;
         },
         eat: function (value) {
+            this.events.push(new EatEvent(value));
             this.eaten.push(value);
             value.getEatenBy(this);
         }

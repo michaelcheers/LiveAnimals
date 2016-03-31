@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		graphics.js = graphics.js
 		index.html = index.html
 		..\JSONDictionary\JSONDictionary\Bridge\www\JSONDictionary.js = ..\JSONDictionary\JSONDictionary\Bridge\www\JSONDictionary.js
+		random.min.js = random.min.js
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "img", "img", "{B74CD5C8-2D66-4F55-BEE8-FE51D373CC00}"

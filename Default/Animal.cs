@@ -45,6 +45,7 @@ namespace Default
 
         public void Eat (Eatable value)
         {
+            events.Push(new EatEvent(value));
             eaten.Push(value);
             value.GetEatenBy(this);
         }

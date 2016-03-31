@@ -12,5 +12,3 @@ function initGraphics()
 
     img1.src = 'img/grass.png';
 }
-
-setTimeout(function () { initGraphics(); }, 1000);
