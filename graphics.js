@@ -29,7 +29,7 @@ function redrawGraphics()
     ctx.fillRect(0, 0, 1000, 1000);
     ctx.drawImage(GFX["grass"], 0, 0);
 
-    Game.animals.forEach(function (animal)
+    Game.garden.forEach(function (animal)
     {
         var pos = animal.gardenPosition;
         if (pos !== null)

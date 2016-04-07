@@ -181,6 +181,8 @@ namespace Default
             {
                 var itemClone = item.state == Animal.AnimalState.None ? (Animal)item.Clone() : item;
                 Console.Log("All " + Enum.GetName(typeof(Animal.AnimalState), ++itemClone.state) + " requirements of the " + item.name + " have been met.");
+                if (itemClone.state == Animal.AnimalState.Resident)
+                    itemClone.gardenPosition = new Vector2(50, 50);
                 arrayToAddTo.Push(itemClone);
             }
             var wants = new Eatable[] { };

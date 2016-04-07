@@ -9,7 +9,7 @@ namespace Default
 {
     public class PositionedObject : ICloneable
     {
-        public Vector2? gardenPosition = new Vector2();
+        public Vector2? gardenPosition;
         public PositionedObject[] garden;
         public string id;
         public string name;

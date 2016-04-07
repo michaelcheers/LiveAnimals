@@ -7,11 +7,6 @@
         garden: null,
         id: null,
         name: null,
-        config: {
-            init: function () {
-                this.gardenPosition = new Default.Vector2("constructor");
-            }
-        },
         clone: function () {
             return Bridge.merge(new Bridge.getType(this)(), Bridge.merge(new JsonDictionary(), Object.keys(this).map(Bridge.fn.bind(this, $_.Default.PositionedObject.f1))).export());
         }
@@ -196,6 +191,9 @@
                 if (Bridge.Linq.Enumerable.from(item.getcurrentRequirements()).all($_.Game.f1)) {
                     var itemClone = item.state === Animal.AnimalState.none ? Bridge.cast(item.clone(), Animal) : item;
                     console.log("All " + Bridge.Enum.getName(Animal.AnimalState, ++itemClone.state) + " requirements of the " + item.name + " have been met.");
+                    if (itemClone.state === Animal.AnimalState.resident) {
+                        itemClone.gardenPosition = new Default.Vector2("constructor$1", 50, 50);
+                    }
                     arrayToAddTo.push(itemClone);
                 }
                 var wants = [];
