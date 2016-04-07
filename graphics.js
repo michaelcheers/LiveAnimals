@@ -15,7 +15,6 @@ function loadGraphics()
 }
 loadGraphics();
 
-    img1.src = 'img/grass.png';
 function initGraphics()
 {
     //    ctx.drawImage(img, 0, 0);
@@ -29,8 +28,16 @@ function redrawGraphics()
     ctx.fillStyle = "#00FF00";
     ctx.fillRect(0, 0, 1000, 1000);
     ctx.drawImage(GFX["grass"], 0, 0);
-    drawAnimal(ctx, GFX["rabbit"], 100, 150);
-    drawAnimal(ctx, GFX["worm"], 250, 150);
+
+    Game.animals.forEach(function (animal)
+    {
+        var pos = animal.gardenPosition;
+        if (pos !== null)
+        {
+            var picture = GFX[animal.id];
+            drawAnimal(ctx, picture, pos.x, pos.y);
+        }
+    });
 }
 
 function drawAnimal(ctx, image, x, y)
