@@ -7,6 +7,11 @@
         garden: null,
         id: null,
         name: null,
+        config: {
+            init: function () {
+                this.gardenPosition = new Default.Vector2("constructor");
+            }
+        },
         clone: function () {
             return Bridge.merge(new Bridge.getType(this)(), Bridge.merge(new JsonDictionary(), Object.keys(this).map(Bridge.fn.bind(this, $_.Default.PositionedObject.f1))).export());
         }
